@@ -10,7 +10,7 @@ Python script (kjv-psql.py), CSV files for each book of the Bible (created from 
 
 The script will create a database called 'bible', create one table called 'kjv', then populate all 31102 verse in the KJV Bible.
 
-Only Python version 2.7 has been tested.
+This version is ONLY compatible with Python 3. You will need to psycopg2 package which you can install via `pip install psycopg2`.
 
 To import the CSV files into your PostgreSQL instance run this command:
 

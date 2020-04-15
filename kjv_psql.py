@@ -15,19 +15,27 @@
 # Import CSV and Import into PostgreSQL
 # Anthony Crawford
 # March 2018
-# Dependencies: hashlib python-pip python-psycopg2 posgresql
+# Dependencies: hashlib (removed April 2020) python-pip python-psycopg2 posgresql
 # -----
+# Updated for Python 3 and usability
+# Jake McDermitt
+# April 2020
+# ----
 
 import os
 import errno
-import hashlib
 
 # Third Party Packages
 import psycopg2
 
+# Server settings
+SERVER_ADDRESS = "127.0.0.1"
+DB_USERNAME = "postgres"
+DB_PASSWORD = "password"
+
 try:
 	print("Connecting ...")
-	conn = psycopg2.connect(host="127.0.0.1", user="postgres", password="password")
+	conn = psycopg2.connect(host=SERVER_ADDRESS, user=DB_USERNAME, password=DB_PASSWORD)
 	cur = conn.cursor()
 	print("PostgreSQL version:")
 	cur.execute('SELECT version()')
@@ -116,14 +124,17 @@ files = [
 	'kjv-revelation.csv'
 ]
 
-conn = psycopg2.connect(host="127.0.0.1", user="postgres", password="password")
+conn = psycopg2.connect(host=SERVER_ADDRESS, user=DB_USERNAME, password=DB_PASSWORD)
 
 print("Creating database: \'bible\'")
 
 sql = """CREATE DATABASE bible;"""
 conn.autocommit = True
 cur = conn.cursor()
-cur.execute(sql)
+try:
+	cur.execute(sql)
+except (Exception, psycopg2.errors.DuplicateDatabase) as error:
+	print("Database already exists, continuing")
 
 sql = """SELECT count(*) FROM pg_catalog.pg_database WHERE datname = 'bible' ;"""
 cur.execute(sql)
@@ -137,7 +148,7 @@ else:
 cur.close()
 conn.close()
 
-conn = psycopg2.connect(host="127.0.0.1", database="bible", user="postgres", password="password")
+conn = psycopg2.connect(host=SERVER_ADDRESS, database="bible", user=DB_USERNAME, password=DB_PASSWORD)
 cur = conn.cursor()
 
 print("Creating table \'kjv\'...")
@@ -167,7 +178,6 @@ for file in files:
 			bible_chapter = row[2]
 			bible_verse = row[3]
 			bible_text = row[5]
-
 			sql = """INSERT INTO kjv VALUES(%s, %s, %s, %s, %s, %s);"""
 			cur.execute(sql, (count, bible_testament, bible_book, bible_chapter, bible_verse, bible_text))
 			count+=1
